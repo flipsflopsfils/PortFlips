@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Loan Risk Analysis</title>
+  <meta name="description" content="Explore loan-risk model performance, score an example, and test illustrative routing thresholds.">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/styles.css"><script src="/app.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="topbar">
+    <a class="brand" href="#overview" aria-label="Loan Risk overview"><img src="/favicon.svg" alt="" width="34" height="34"><span>Loan Risk Analysis</span></a>
+    <span class="local-badge"><span class="status-dot"></span>Running locally</span>
+  </header>
+  <div class="shell">
+    <nav class="navigation" aria-label="Main navigation">
+      <a href="#overview" data-page="overview" class="active" aria-current="page"><span class="nav-number">01</span> Model performance</a>
+      <a href="#score" data-page="score"><span class="nav-number">02</span> Try a loan</a>
+      <a href="#decisions" data-page="decisions"><span class="nav-number">03</span> Decisions lab</a>
+      <a href="#data" data-page="data"><span class="nav-number">04</span> Data &amp; method</a>
+    </nav>
+    <main id="main">
+      <div id="loading" class="loading" role="status"><span class="spinner"></span>Loading the verified analysis…</div>
+      <div id="fatal" class="error-box" role="alert" hidden></div>
+      <section id="overview" class="page" aria-labelledby="overview-title" hidden>
+        <div class="page-heading"><div><p class="eyebrow">FINAL TEST RESULTS</p><h1 id="overview-title">How well does the model work?</h1><p class="intro">Useful ranking. Limited probability accuracy. See the evidence for both.</p></div><span class="tag">2017–2018 final test</span></div>
+        <div class="metrics-grid" id="headline-metrics"></div>
+        <div class="verdict"><span class="verdict-mark" aria-hidden="true">↗</span><div><strong>A modest signal, not a lending-ready model.</strong><p id="verdict-copy"></p></div><a class="text-link" href="#score">Try an example <span aria-hidden="true">→</span></a></div>
+        <div class="two-column">
+          <article class="panel"><div class="panel-heading"><div><h2>Ranking performance</h2><p>Higher curves mean better separation.</p></div><label class="compact-label">Cohort<select id="roc-split"><option value="test">Final test</option><option value="validation">Validation</option></select></label></div><div id="roc-chart" class="chart"></div><div id="roc-legend" class="legend"></div><p class="chart-note">ROC-AUC: 0.5 is random ranking; 1.0 is perfect. It is not “percent correct.”</p></article>
+          <article class="panel"><div class="panel-heading"><div><h2>Do the risk groups separate?</h2><p>Observed charged-off rates, using the same cutoffs.</p></div></div><div id="bands-chart" class="chart"></div><div class="legend"><span><i style="--legend:#1b6a62"></i>Validation</span><span><i style="--legend:#d7a460"></i>Final test</span></div><p class="chart-note">Low, medium and high groups were defined using validation scores. Later group sizes can differ.</p></article>
+        </div>
+        <article class="panel comparison"><div class="panel-heading"><div><h2>Why this model?</h2><p>Both candidates saw the same training data. Validation chose the winner.</p></div><span class="pill">No parameter search</span></div><div class="table-scroll" id="model-table"></div></article>
+        <div class="two-column bottom-grid">
+          <article class="panel"><div class="panel-heading"><div><h2>Scores versus reality</h2><p>Ten equally sized final-test score groups.</p></div><span class="pill warm">Calibration check</span></div><div id="calibration-chart" class="chart"></div><p class="chart-note">Points above the diagonal mean the observed charged-off rate is higher than the model score.</p></article>
+          <article class="panel"><div class="panel-heading"><div><h2>Read the metrics correctly</h2><p>A few useful checks beyond ROC-AUC.</p></div></div><div id="metric-details"></div><div class="note"><strong>What this establishes</strong><p>The model finds some separation in these historical records. It does not establish accurate individual default probabilities, profit, fairness, or performance on rejected applicants.</p></div></article>
+        </div>
+      </section>
+      <section id="score" class="page" aria-labelledby="score-title" hidden>
+        <div class="page-heading"><div><p class="eyebrow">EXAMPLE LOAN</p><h1 id="score-title">Try a loan.</h1><p class="intro">Change the inputs and see how the model score responds. The routes are illustrative.</p></div><span class="tag">Illustrative decisions</span></div>
+        <div class="score-layout">
+          <article class="panel input-panel"><div class="panel-heading"><div><h2>Application inputs</h2><p>US-dollar amounts and application-time information.</p></div></div>
+            <div class="presets" aria-label="Example inputs"><button type="button" data-preset="lower">Stronger profile</button><button type="button" class="selected" data-preset="typical">Typical example</button><button type="button" data-preset="higher">Weaker profile</button></div>
+            <form id="loan-form" novalidate>
+              <div class="form-grid">
+                <label>Annual income <span class="unit">USD / year</span><input id="revenue" name="revenue" type="number" value="65000" min="1" step="1000" inputmode="decimal"><small>Self-declared gross annual income.</small></label>
+                <label>Requested amount <span class="unit">USD</span><input id="loan_amnt" name="loan_amnt" type="number" value="12000" min="1" step="500" inputmode="decimal"><small>The amount the borrower requests.</small></label>
+                <label>Debt-to-income ratio <span class="unit">%</span><input id="dti_n" name="dti_n" type="number" value="18" min="0" step="0.5" inputmode="decimal"><small>Monthly debt payments relative to income.</small></label>
+                <label>FICO score <span class="unit">300–850</span><input id="fico_n" name="fico_n" type="number" value="702" min="300" max="850" step="1" inputmode="numeric"><small>A higher FICO indicates stronger credit history.</small></label>
+                <label>Employment length<select id="emp_length" name="emp_length"></select><small>“Unknown” is accepted by the model.</small></label>
+                <label>Loan purpose<select id="purpose" name="purpose"></select><small>The stated reason for requesting the loan.</small></label>
+              </div>
+              <button class="primary-button" type="submit" id="score-button">Score this loan <span aria-hidden="true">→</span></button>
+              <p id="score-status" class="form-hint" role="status" hidden>Inputs changed. Score this loan to update the result.</p>
+              <p class="form-hint">To try the missing-input guard, clear income or FICO and score again.</p>
+              <div id="score-error" class="error-box" role="alert" hidden></div>
+            </form>
+          </article>
+          <div class="score-results" id="score-results" aria-live="polite"></div>
+        </div>
+      </section>
+      <section id="decisions" class="page" aria-labelledby="decisions-title" hidden>
+        <div class="page-heading"><div><p class="eyebrow">WHAT CHANGES WHEN THE RULE CHANGES?</p><h1 id="decisions-title">Decisions lab.</h1><p class="intro">Move the cutoffs to explore the trade-off between routing volume and observed outcomes.</p></div><span class="tag amber">Validation data only</span></div>
+        <div class="lab-layout">
+          <article class="panel cutoff-panel"><div class="panel-heading"><div><h2>Set the score boundaries</h2><p>These experiments do not change the saved model.</p></div></div>
+            <div class="slider-field"><label for="lower-cutoff">Approve → review <span><input id="lower-value" type="number" min="0" max="99.9" step="0.1" aria-label="Lower score cutoff in percent">%</span></label><input id="lower-cutoff" type="range" min="0" max="99.9" step="0.1"><p>Below this score, route to approve.</p></div>
+            <div class="slider-field"><label for="upper-cutoff">Review → decline <span><input id="upper-value" type="number" min="0.1" max="100" step="0.1" aria-label="Upper score cutoff in percent">%</span></label><input id="upper-cutoff" type="range" min="0.1" max="100" step="0.1"><p>At or above this score, route to decline.</p></div>
+            <div class="cutoff-actions"><button id="apply-cutoffs" class="secondary-button apply-button">Apply cutoffs</button><button id="reset-cutoffs" class="secondary-button">Reset to original</button></div><p class="form-hint">Drag sliders for live results, or type values and apply.</p><p id="cutoff-status" class="form-hint"></p><div id="lab-error" class="error-box" role="alert" hidden></div>
+            <div class="note"><strong>Why validation only?</strong><p>Choosing a rule after inspecting its test performance would weaken the final evaluation. The original final-test report stays fixed on the first page.</p></div>
+          </article>
+          <article class="panel"><div class="panel-heading"><div><h2>How the loans are routed</h2><p id="lab-subtitle"></p></div></div><div id="routing-stack" class="routing-stack"></div><div class="legend route-legend"><span><i style="--legend:#1b6a62"></i>Approve</span><span><i style="--legend:#d7a460"></i>Review</span><span><i style="--legend:#bc6956"></i>Decline</span></div><div class="table-scroll" id="routing-table"></div><div id="routing-insights" class="routing-insights" aria-live="polite"></div><p class="chart-note">These are actual outcomes of previously funded loans sorted by an illustrative rule. “Decline” does not mean those loans were originally rejected.</p></article>
+        </div>
+      </section>
+      <section id="data" class="page" aria-labelledby="data-title" hidden>
+        <div class="page-heading"><div><p class="eyebrow">ABOUT THE DATA</p><h1 id="data-title">Data &amp; method.</h1><p class="intro">One reproducible sample. Six inputs. Two simple models.</p></div><a class="text-link" href="https://doi.org/10.5281/zenodo.11295916" target="_blank" rel="noreferrer">Dataset source ↗</a></div>
+        <div class="process-grid"><div><span>01</span><h3>Sample &amp; audit</h3><p>50,000 random records, seed 42. Check dates, IDs, missingness and unusual values.</p></div><div><span>02</span><h3>Train before 2016</h3><p>Learn imputations, scaling, categories and model weights from earlier loans only.</p></div><div><span>03</span><h3>Choose on 2016</h3><p>Compare ROC-AUC. Select one model and lock two validation score cutoffs.</p></div><div><span>04</span><h3>Test on 2017–2018</h3><p>Evaluate the unchanged model. Keep this original report separate from experiments.</p></div></div>
+        <div class="two-column"><article class="panel"><div class="panel-heading"><div><h2>Chronological split</h2><p>No overlapping loans or origination months.</p></div></div><div id="split-table" class="table-scroll"></div><div class="note"><strong>The target</strong><p>Eventually charged off = 1; fully paid = 0. The date is used for splitting, never as a predictor.</p></div></article><article class="panel"><div class="panel-heading"><div><h2>Checks and data quality</h2><p>Verified when the notebook was executed.</p></div></div><div id="audit-findings" class="audit-findings"></div></article></div>
+        <article class="panel"><div class="panel-heading"><div><h2>Loan purpose in the sample</h2><p>SQLite query output. Small groups can have unstable rates; differences are not causal.</p></div></div><div id="purpose-table" class="table-scroll purpose-table"></div></article>
+        <article class="panel limitations"><div class="panel-heading"><div><h2>Where the conclusions stop</h2><p>These limits are part of understanding the project.</p></div></div><div class="limitations-grid"><div><h3>Funded, resolved loans only</h3><p>Rejected applicants and unresolved loans are absent. Later cohorts may overrepresent quickly resolved loans.</p></div><div><h3>No historical label timestamps</h3><p>Resolution dates are unavailable. This is a later-cohort comparison, not a simulation of exactly what a lender knew on each date.</p></div><div><h3>Scores are not calibrated probabilities</h3><p>The model understates observed outcome rates. No one-year PD, profit or real approval-policy claim is supported.</p></div><div><h3>A limited research sample</h3><p>Historical US marketplace loans, no uncertainty intervals or fairness evaluation. Transfer to Austrian banking has not been tested.</p></div></div><details><summary>Reproducibility and source details</summary><div id="provenance"></div></details></article>
+      </section>
+      <footer>Loan Risk Analysis <span>•</span> Portfolio research using public Lending Club records <span>•</span> Inputs stay on this computer</footer>
+    </main>
+  </div>
+</body>
+</html>
