@@ -139,3 +139,4 @@ checks, including scores exactly at both cutoffs and missing essential inputs.
 The original dataset is credited above and linked directly; [OpenAIRE lists its
 license as CC BY](https://explore.openaire.eu/search/dataset?pid=10.5281%2Fzenodo.11295916).
 The full CSV is downloaded from Zenodo rather than copied into this repository.
+The project code is available under the [MIT license](LICENSE).
